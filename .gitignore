@@ -1,2 +1,9 @@
-.aider*
+node_modules/
+.DS_Store
+coverage/
+*.log
 .env
+.jest-cache/
+dist/
+*.test.js.map
+.vscode/
