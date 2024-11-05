@@ -1,43 +1,86 @@
-const marked = require('marked');
+import fs from 'fs';
+import path from 'path';
 
 class TemplateManager {
-    constructor() {
-        this.defaultTemplate = `
-# Hi there 👋, I'm {{name}}
+  constructor() {
+    this.templatesDir = path.join(process.cwd(), 'templates');
+    this.profilesDir = path.join(process.cwd(), 'profiles');
+    
+    // Ensure directories exist
+    this.ensureDirectories();
+  }
 
-## {{title}}
+  ensureDirectories() {
+    [this.templatesDir, this.profilesDir].forEach(dir => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    });
+  }
 
-{{about}}
+  // Offline template management
+  listTemplates() {
+    return fs.readdirSync(this.templatesDir)
+      .filter(file => file.endsWith('.md'))
+      .map(file => path.basename(file, '.md'));
+  }
 
-### 🛠 Skills
-{{skills}}
-
-### 📫 How to reach me:
-- GitHub: [@{{github}}](https://github.com/{{github}})
-
-### 📊 GitHub Stats
-![{{name}}'s GitHub stats](https://github-readme-stats.vercel.app/api?username={{github}}&show_icons=true&theme=radical)
-        `;
+  loadTemplate(templateName) {
+    const templatePath = path.join(this.templatesDir, `${templateName}.md`);
+    
+    if (!fs.existsSync(templatePath)) {
+      throw new Error(`Template ${templateName} not found`);
     }
+    
+    return fs.readFileSync(templatePath, 'utf-8');
+  }
 
-    generateReadme(data) {
-        let readme = this.defaultTemplate;
-        
-        // Replace template variables with actual data
-        Object.keys(data).forEach(key => {
-            const regex = new RegExp(`{{${key}}}`, 'g');
-            readme = readme.replace(regex, data[key]);
-        });
+  saveTemplate(templateName, content) {
+    const templatePath = path.join(this.templatesDir, `${templateName}.md`);
+    fs.writeFileSync(templatePath, content);
+  }
 
-        // Convert skills array to bullet points if it's a comma-separated string
-        if (data.skills) {
-            const skillsArray = data.skills.split(',').map(skill => skill.trim());
-            const skillsList = skillsArray.map(skill => `- ${skill}`).join('\n');
-            readme = readme.replace('{{skills}}', skillsList);
-        }
+  // Personalization profile management
+  saveProfile(profileName, profileData) {
+    const profilePath = path.join(this.profilesDir, `${profileName}.json`);
+    fs.writeFileSync(profilePath, JSON.stringify(profileData, null, 2));
+  }
 
-        return readme;
+  loadProfile(profileName) {
+    const profilePath = path.join(this.profilesDir, `${profileName}.json`);
+    
+    if (!fs.existsSync(profilePath)) {
+      throw new Error(`Profile ${profileName} not found`);
     }
+    
+    return JSON.parse(fs.readFileSync(profilePath, 'utf-8'));
+  }
+
+  listProfiles() {
+    return fs.readdirSync(this.profilesDir)
+      .filter(file => file.endsWith('.json'))
+      .map(file => path.basename(file, '.json'));
+  }
+
+  // Template personalization
+  generateReadme(templateName, profileName) {
+    const template = this.loadTemplate(templateName);
+    const profile = this.loadProfile(profileName);
+
+    // Simple template replacement
+    return Object.entries(profile).reduce((readme, [key, value]) => {
+      return readme.replace(`{{${key}}}`, value);
+    }, template);
+  }
+
+  // Advanced template creation
+  createCustomTemplate(name, sections) {
+    const templateContent = sections.map(section => 
+      `## ${section.title}\n${section.content}`
+    ).join('\n\n');
+
+    this.saveTemplate(name, templateContent);
+  }
 }
 
-module.exports = TemplateManager;
+export default new TemplateManager();
