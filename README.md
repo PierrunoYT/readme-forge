@@ -64,7 +64,14 @@ gpreadme generate
 Contributions are welcome! Please check our issues page for current tasks and improvements.
 
 ## 📄 License
-See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+### MIT License Highlights
+- Commercial use allowed
+- Modifications permitted
+- Distribution allowed
+- Private use allowed
+- No warranty provided
 
 ## 💡 Project Philosophy
 Create a lightweight, portable tool that empowers developers to showcase their unique professional identity through a customizable GitHub profile README, all without relying on external services.
